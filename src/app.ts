@@ -3,6 +3,7 @@ import cors from "cors";
 
 import { connectDB } from "./utils/feature.js";
 import { errorMiddleware } from "./middlewares/error.js";
+import NodeCache from "node-cache";
 
 // importing routes
 import userRoute from "./routes/user.js";
@@ -12,6 +13,8 @@ const app = express();
 const port = 5000;
 
 connectDB();
+
+export const myCache = new NodeCache()
 
 app.use(express.json());
 app.use(cors());
