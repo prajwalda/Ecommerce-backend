@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
-import { InvalidateCacheProps } from "../types/types";
+import { InvalidateCacheProps, orderItemType } from "../types/types";
 import { myCache } from "../app";
 import { Product } from "../models/product";
+import { Order } from "../models/order";
 
-export const connectDB = async () => {
+export const connectDB = async (uri: string) => {
   try {
-    const connection = await mongoose.connect("mongodb://127.0.0.1:27017", {
+    const connection = await mongoose.connect(uri, {
       dbName: "Ecommerce24",
     });
 
@@ -20,6 +21,9 @@ export const invalidateCache = async ({
   product,
   order,
   admin,
+  userId,
+  orderId,
+  productId,
 }: InvalidateCacheProps) => {
   if (product) {
     const productKeys: string[] = [
@@ -27,17 +31,38 @@ export const invalidateCache = async ({
       "categories",
       "all-products",
     ];
+    if (typeof productId === "string") productKeys.push(`product-${productId}`);
 
-    const products = await Product.find({}).select("_id");
-
-    products.forEach((item) => {
-      productKeys.push(`product-${item._id}`);
-    });
+    if (typeof productId == "object")
+      productId.forEach((i) => productKeys.push(`product-${i}`));
 
     myCache.del(productKeys);
   }
   if (order) {
+    const orderKeys: string[] = [
+      "all-orders",
+      `my-orders-${userId}`,
+      `order-${orderId}`,
+    ];
+    // new approch better
+    // const order = await Order.find({}).select("_id");
+
+    // order.forEach((i) => {
+    //   orderKeys.push(`order-${i._id}`);
+    // });
+
+    myCache.del(orderKeys);
   }
   if (admin) {
+  }
+};
+
+export const reduceStock = async (orderItems: orderItemType[]) => {
+  for (let i = 0; i < orderItems.length; i++) {
+    const order = orderItems[i];
+    const product = await Product.findById(order.productId);
+    if (!product) throw new Error("Product not found");
+    product.stock -= order.quantity;
+    await product.save();
   }
 };
