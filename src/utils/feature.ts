@@ -3,6 +3,7 @@ import { InvalidateCacheProps, orderItemType } from "../types/types";
 import { myCache } from "../app";
 import { Product } from "../models/product";
 import { Order } from "../models/order";
+import { Document } from "mongoose";
 
 export const connectDB = async (uri: string) => {
   try {
@@ -69,7 +70,7 @@ export const reduceStock = async (orderItems: orderItemType[]) => {
 
 export const calculatePercentage = (thisMonth: number, lastMonth: number) => {
   if (lastMonth === 0) return thisMonth * 100;
-  const percent = ((thisMonth - lastMonth) / lastMonth) * 100;
+  const percent = (thisMonth / lastMonth) * 100;
   return Number(percent.toFixed(0));
 };
 
@@ -95,4 +96,29 @@ export const getInvetories = async ({
   });
 
   return categoryCount;
+};
+
+interface myDocument extends Document {
+  createdAt: Date;
+}
+
+type funcProps = {
+  length: number;
+  docArr: myDocument[];
+};
+
+export const getChartData = ({ length, docArr }: funcProps) => {
+  const today = new Date();
+
+  const data: number[] = new Array(length).fill(0);
+
+  docArr.forEach((order) => {
+    const creationDate = order.createdAt;
+    const monthDiff = (today.getMonth() - creationDate.getMonth() + 12) % 12;
+
+    if (monthDiff >= 0 && monthDiff < length) {
+      data[length - monthDiff - 1] += 1;
+    }
+  });
+  return data;
 };
