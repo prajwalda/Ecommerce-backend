@@ -4,11 +4,15 @@ import { adminOnly } from "../middlewares/auth.js";
 import {
   allCoupons,
   applyDiscount,
+  createPaymentIntent,
   deleteCoupon,
   newCoupon,
 } from "../controllers/payment.js";
 
 const app = express.Router();
+
+// stripe payment
+app.post("/create", createPaymentIntent);
 
 app.post("/coupon/new", adminOnly, newCoupon);
 
