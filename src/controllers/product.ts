@@ -100,7 +100,7 @@ export const newProduct = TryCatch(
       return next(new ErrorHandler("please enter all fields", 400));
     }
 
-    await Product.create({
+    const product = await Product.create({
       name,
       price,
       stock,
